@@ -16,9 +16,9 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Sprite boyutunu ayarla (sandalye görseline göre)
-    this.setScale(0.12); // Görselin boyutuna göre ayarla
-    this.setAlpha(0.5); // Başlangıçta pasif
+    // Sprite boyutunu ayarla (sandalye görseline göre) - %15 büyütüldü
+    this.setScale(0.085008); // 0.07392 * 1.15 = 0.085008
+    this.setAlpha(1.0); // Tam görünür
 
     // Physics ayarları
     if (this.isFake) {
@@ -43,11 +43,29 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
         (this.height - bodyHeight) / 2
       );
     }
+
+    // Sandalyenin yönünü konumuna göre ayarla
+    this.updateChairDirection();
+  }
+
+  private updateChairDirection() {
+    // Ekranın merkezini al (daraltılmış oyun alanının merkezi)
+    const screenWidth = this.scene.cameras.main.width;
+    const leftMargin = screenWidth * 0.12;
+    const playableWidth = screenWidth * 0.76;
+    const centerX = leftMargin + playableWidth / 2;
+
+    // Sandalye ekranın sağında ise sola baksın (flip), solunda ise sağa baksın (normal)
+    if (this.x > centerX) {
+      this.setFlipX(true); // Sola bak
+    } else {
+      this.setFlipX(false); // Sağa bak
+    }
   }
 
   setChairActive(isActive: boolean) {
     this.chairActive = isActive;
-    this.setAlpha(isActive ? 1 : 0.5);
+    this.setAlpha(1.0); // Her zaman tam görünür
 
     if (isActive) {
       // Aktif olduğunda hafif bir animasyon (mevcut scale'den başla)
@@ -110,8 +128,10 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
   }
 
   private moveToRandomPosition(width: number, height: number) {
+    // Physics world bounds'dan daraltılmış alanı al
+    const bounds = (this.scene as Phaser.Scene).physics.world.bounds;
     const padding = 100;
-    const randomX = Phaser.Math.Between(padding, width - padding);
+    const randomX = Phaser.Math.Between(bounds.x + padding, bounds.x + bounds.width - padding);
     const randomY = Phaser.Math.Between(padding + 100, height - padding - 100);
 
     // Rastgele bir süre belirle
@@ -124,6 +144,10 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
       y: randomY,
       duration: duration,
       ease: 'Linear',
+      onUpdate: () => {
+        // Hareket ederken yönü güncelle
+        this.updateChairDirection();
+      },
       onComplete: () => {
         // Hareket tamamlandığında yeni bir pozisyona git
         this.moveToRandomPosition(width, height);
@@ -142,9 +166,10 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
     // Hareketi durdur
     this.stopMoving();
 
-    // Rastgele bir pozisyona ışınlan
+    // Physics world bounds'dan daraltılmış alanı al
+    const bounds = (this.scene as Phaser.Scene).physics.world.bounds;
     const padding = 100;
-    const randomX = Phaser.Math.Between(padding, width - padding);
+    const randomX = Phaser.Math.Between(bounds.x + padding, bounds.x + bounds.width - padding);
     const randomY = Phaser.Math.Between(padding + 100, height - padding - 100);
 
     // Işınlanma efekti
@@ -155,10 +180,12 @@ export class Chair extends Phaser.Physics.Arcade.Sprite {
       yoyo: true,
       onYoyo: () => {
         this.setPosition(randomX, randomY);
+        // Yeni pozisyona göre yönü güncelle
+        this.updateChairDirection();
       },
       onComplete: () => {
-        // Sandalye aktifse alpha 1, değilse 0.5
-        this.setAlpha(this.chairActive ? 1 : 0.5);
+        // Her zaman tam görünür
+        this.setAlpha(1.0);
       }
     });
   }

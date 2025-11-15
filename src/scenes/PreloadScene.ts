@@ -78,8 +78,9 @@ export class PreloadScene extends Phaser.Scene {
     this.load.audio('lose', 'assets/audio/lose.mp3');
 
     // Obje sprite'larını yükle
-    this.load.image('chair', 'assets/sprites/objects/chair.png');
-    this.load.image('level1-background', 'assets/sprites/objects/backgorund.jpeg');
+    this.load.image('chair', 'assets/sprites/objects/newbestchair.png');
+    this.load.image('level1-background', 'assets/sprites/objects/arkaplantam.jpg');
+    this.load.image('menu-background', 'assets/sprites/objects/girisarkaplan.jpg');
 
     // Karakter sprite'larını yükle (memory tasarrufu için sadece player ve 2 bot)
     this.loadCharacterSprites('player');

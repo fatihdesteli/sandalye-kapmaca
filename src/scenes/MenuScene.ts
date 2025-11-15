@@ -9,107 +9,53 @@ export class MenuScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // Arka plan gradient efekti
-    const graphics = this.add.graphics();
-    graphics.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x16213e, 0x16213e, 1);
-    graphics.fillRect(0, 0, width, height);
+    // Arka plan görseli
+    const background = this.add.image(width / 2, height / 2, 'menu-background');
+    background.setDisplaySize(width, height);
 
-    // Parçacık efekti (azaltılmış)
-    this.createParticles(width, height);
+    // Butonlar için pozisyonlar - alt kısımda ortada yan yana
+    const buttonY = height * 0.75; // Alt kısımda
+    const centerX = width / 2;
+    const buttonSpacing = 160; // Butonlar arası mesafe
 
-    // Ana başlık container - yatay ekran için üst kısma taşı
-    const titleContainer = this.add.container(width / 2, 60);
+    const baslaX = centerX - buttonSpacing / 2 - 75; // Sol buton
+    const leaderboardX = centerX + buttonSpacing / 2 + 75; // Sağ buton
 
-    // Başlık arka plan - yatay için daha kompakt
-    const titleBg = this.add.rectangle(0, 0, 500, 90, 0x0f3460, 0.8);
-    titleBg.setStrokeStyle(3, 0xffd700);
-    titleContainer.add(titleBg);
-
-    // Ana başlık - daha küçük font
-    const title = this.add.text(0, -8, 'SANDALYE KAPMACA', {
-      fontSize: '38px',
-      color: '#ffd700',
-      fontStyle: 'bold',
-      stroke: '#000000',
-      strokeThickness: 4,
-    });
-    title.setOrigin(0.5);
-    titleContainer.add(title);
-
-    // Alt başlık
-    const subtitle = this.add.text(0, 25, 'MUSICAL CHAIRS', {
-      fontSize: '16px',
-      color: '#ffffff',
-      fontStyle: 'italic',
-    });
-    subtitle.setOrigin(0.5);
-    titleContainer.add(subtitle);
-
-    // Başlık animasyonu - daha az hareket
-    this.tweens.add({
-      targets: title,
-      scale: { from: 1, to: 1.03 },
-      duration: 1500,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
+    // BAŞLA butonu
+    this.createButton(baslaX, buttonY, 'BAŞLA', () => {
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('GameScene');
+      });
     });
 
-    // Sol taraf - Oyun bilgileri ve Başla butonu
-    this.createLeftSide(width, height);
-
-    // Sağ taraf - Mekanik kartları
-    this.createRightSide(width, height);
-
-    // Alt bilgi
-    const footer = this.add.text(
-      width / 2,
-      height - 15,
-      'Klavye: WASD/Ok Tuşları | Mobil: Joystick',
-      {
-        fontSize: '12px',
-        color: '#888888',
-      }
-    );
-    footer.setOrigin(0.5);
+    // LEADERBOARD butonu
+    this.createButton(leaderboardX, buttonY, 'LEADERBOARD', () => {
+      // Leaderboard fonksiyonu - şimdilik boş
+      console.log('Leaderboard tıklandı');
+    });
   }
 
-  private createLeftSide(width: number, height: number) {
-    const leftX = width * 0.28;
-    const centerY = height / 2;
+  private createButton(x: number, y: number, text: string, onClick: () => void) {
+    const buttonContainer = this.add.container(x, y);
 
-    // Oyun bilgileri
-    const infoTexts = [
-      '👥 6 Oyuncu',
-      '🎵 5 Round',
-      '🏆 1 Kazanan',
-    ];
+    // İç glow efekti için arka plan
+    const glowBg = this.add.rectangle(0, 0, 160, 55, 0xFF8C00, 0.3);
+    glowBg.setStrokeStyle(0);
+    buttonContainer.add(glowBg);
 
-    infoTexts.forEach((text, index) => {
-      const infoText = this.add.text(
-        leftX,
-        centerY - 60 + index * 35,
-        text,
-        {
-          fontSize: '20px',
-          color: '#ffffff',
-          fontStyle: 'bold',
-        }
-      );
-      infoText.setOrigin(0.5);
-    });
-
-    // Başla butonu
-    const buttonContainer = this.add.container(leftX, centerY + 60);
-
-    const buttonBg = this.add.rectangle(0, 0, 200, 60, 0x4CAF50);
-    buttonBg.setStrokeStyle(3, 0xffffff);
+    // Ana buton arka planı - koyu gradient efekti ile
+    const buttonBg = this.add.rectangle(0, 0, 150, 50, 0x1a0f0a, 0.85);
+    buttonBg.setStrokeStyle(3, 0xFF8C00); // Turuncu parlak çerçeve
     buttonContainer.add(buttonBg);
 
-    const buttonText = this.add.text(0, 0, '▶ BAŞLA', {
-      fontSize: '32px',
-      color: '#ffffff',
+    // Buton metni - parlak turuncu
+    const buttonText = this.add.text(0, 0, text, {
+      fontSize: '18px',
+      color: '#FFA500',
       fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 2,
     });
     buttonText.setOrigin(0.5);
     buttonContainer.add(buttonText);
@@ -120,89 +66,59 @@ export class MenuScene extends Phaser.Scene {
     buttonBg.on('pointerover', () => {
       this.tweens.add({
         targets: buttonContainer,
-        scale: 1.1,
-        duration: 200,
+        scale: 1.08,
+        duration: 150,
       });
-      buttonBg.setFillStyle(0x66BB6A);
+      buttonBg.setFillStyle(0x2a1f1a, 0.9);
+      buttonBg.setStrokeStyle(3, 0xFFAA33); // Daha parlak turuncu
+      buttonText.setColor('#FFB833');
+
+      // Glow efekti güçlendir
+      this.tweens.add({
+        targets: glowBg,
+        alpha: 0.5,
+        duration: 150,
+      });
     });
 
     buttonBg.on('pointerout', () => {
       this.tweens.add({
         targets: buttonContainer,
         scale: 1,
-        duration: 200,
+        duration: 150,
       });
-      buttonBg.setFillStyle(0x4CAF50);
+      buttonBg.setFillStyle(0x1a0f0a, 0.85);
+      buttonBg.setStrokeStyle(3, 0xFF8C00);
+      buttonText.setColor('#FFA500');
+
+      // Glow efekti azalt
+      this.tweens.add({
+        targets: glowBg,
+        alpha: 0.3,
+        duration: 150,
+      });
     });
 
     buttonBg.on('pointerdown', () => {
       this.tweens.add({
         targets: buttonContainer,
         scale: 0.95,
-        duration: 100,
+        duration: 80,
         yoyo: true,
-        onComplete: () => {
-          this.cameras.main.fadeOut(500, 0, 0, 0);
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('GameScene');
-          });
-        },
+        onComplete: onClick,
       });
     });
-  }
 
-  private createRightSide(width: number, height: number) {
-    const rightX = width * 0.72;
-    const centerY = height / 2;
-
-    const title = this.add.text(
-      rightX,
-      centerY - 80,
-      '5 FARKLI MEKANİK',
-      {
-        fontSize: '18px',
-        color: '#ffd700',
-        fontStyle: 'bold',
-      }
-    );
-    title.setOrigin(0.5);
-
-    const mechanics = [
-      { name: 'Normal', icon: '🪑' },
-      { name: 'Random', icon: '🎲' },
-      { name: 'Moving', icon: '💨' },
-      { name: 'Teleport', icon: '⚡' },
-      { name: 'Fake', icon: '❌' },
-    ];
-
-    mechanics.forEach((mechanic, index) => {
-      const y = centerY - 40 + index * 30;
-
-      const text = this.add.text(
-        rightX,
-        y,
-        `${mechanic.icon} ${mechanic.name}`,
-        {
-          fontSize: '16px',
-          color: '#ffffff',
-        }
-      );
-      text.setOrigin(0.5);
+    // Hafif parıldama animasyonu
+    this.tweens.add({
+      targets: glowBg,
+      alpha: { from: 0.3, to: 0.45 },
+      duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
     });
-  }
 
-  private createParticles(width: number, height: number) {
-    // Yıldız parçacıkları - azaltılmış performance için
-    const particles = this.add.particles(0, 0, 'chair', {
-      x: { min: 0, max: width },
-      y: { min: -100, max: -50 },
-      lifespan: 10000,
-      speedY: { min: 15, max: 30 },
-      scale: { start: 0.015, end: 0 },
-      alpha: { start: 0.4, end: 0 },
-      frequency: 1000, // 500'den 1000'e - daha az parçacık
-      rotate: { start: 0, end: 360 },
-      maxParticles: 15, // Maksimum 15 parçacık
-    });
+    return buttonContainer;
   }
 }

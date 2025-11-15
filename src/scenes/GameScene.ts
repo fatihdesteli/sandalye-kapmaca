@@ -51,14 +51,12 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.setBackgroundColor('#1a1a2e');
     }
 
-    // Physics world sınırlarını ayarla
-    this.physics.world.setBounds(0, 0, width, height);
+    // Physics world sınırlarını ayarla - sağdan ve soldan %12 daraltılmış
+    const leftMargin = width * 0.12;
+    const playableWidth = width * 0.76; // %76 genişlik
+    this.physics.world.setBounds(leftMargin, 0, playableWidth, height);
 
-    // Görsel sınır çizgisi ekle (opsiyonel - oyun alanını göster)
-    const borderGraphics = this.add.graphics();
-    borderGraphics.lineStyle(4, 0xffffff, 0.5);
-    borderGraphics.strokeRect(10, 10, width - 20, height - 20);
-    borderGraphics.setDepth(1000); // En üstte görünsün
+    // Görsel sınır çizgisi kaldırıldı (görünmez)
 
     // Audio Manager'ı başlat
     this.audioManager = new AudioManager(this);
@@ -147,7 +145,10 @@ export class GameScene extends Phaser.Scene {
   private createChairs() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-    const centerX = width / 2;
+    // Daraltılmış oyun alanının merkezi
+    const leftMargin = width * 0.12;
+    const playableWidth = width * 0.76;
+    const centerX = leftMargin + playableWidth / 2;
     const centerY = height / 2;
     const radius = 200;
     const chairCount = this.totalPlayers - 1; // Her roundda 1 eksik sandalye
@@ -172,7 +173,10 @@ export class GameScene extends Phaser.Scene {
   private createPlayers() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-    const centerX = width / 2;
+    // Daraltılmış oyun alanının merkezi
+    const leftMargin = width * 0.12;
+    const playableWidth = width * 0.76;
+    const centerX = leftMargin + playableWidth / 2;
     const centerY = height / 2;
     const playerCount = this.totalPlayers;
     const radius = 280;
@@ -213,6 +217,18 @@ export class GameScene extends Phaser.Scene {
         });
       }
     });
+
+    // Bot-Bot collision - botlar birbirini itsin ama takılmasın
+    for (let i = 0; i < this.bots.length; i++) {
+      for (let j = i + 1; j < this.bots.length; j++) {
+        this.physics.add.collider(this.bots[i], this.bots[j]);
+      }
+    }
+
+    // Player-Bot collision
+    this.bots.forEach(bot => {
+      this.physics.add.collider(this.player, bot);
+    });
   }
 
   private stopMusic() {
@@ -223,8 +239,11 @@ export class GameScene extends Phaser.Scene {
     this.audioManager.stopBackgroundMusic();
     this.audioManager.playSoundEffect('music-stop', 0.7);
 
-    const width = this.cameras.main.width;
+    // Daraltılmış oyun alanı için width ayarı
+    const fullWidth = this.cameras.main.width;
     const height = this.cameras.main.height;
+    const leftMargin = fullWidth * 0.12;
+    const width = fullWidth * 0.76; // Daraltılmış genişlik
 
     // Özel mekaniklere göre işlemler
     if (this.currentMechanic.specialMechanic === 'movingChairsWithFakes') {

@@ -30,7 +30,11 @@ export class BotPlayer extends Phaser.Physics.Arcade.Sprite {
     this.botChar = botChar;
     this.difficulty = difficulty;
     this.playerName = `Bot ${botIndex}`;
-    this.centerX = scene.cameras.main.width / 2;
+    // Daraltılmış oyun alanının merkezi
+    const width = scene.cameras.main.width;
+    const leftMargin = width * 0.12;
+    const playableWidth = width * 0.76;
+    this.centerX = leftMargin + playableWidth / 2;
     this.centerY = scene.cameras.main.height / 2;
 
     // Sahneye ekle
@@ -40,8 +44,8 @@ export class BotPlayer extends Phaser.Physics.Arcade.Sprite {
     // Animasyonları oluştur
     this.createAnimations(scene, this.botChar);
 
-    // Sprite boyutunu ayarla (2048x2048 çok büyük, scale ile küçült)
-    this.setScale(0.045); // 2048 * 0.045 = ~92 piksel (%50 daha büyük)
+    // Sprite boyutunu ayarla (2048x2048 çok büyük, scale ile küçült) - %10 büyütüldü
+    this.setScale(0.0495); // 0.045 * 1.1 = 0.0495
 
     // Collision body'yi ayarla
     this.setSize(1024, 1024);
@@ -267,7 +271,7 @@ export class BotPlayer extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Yeterince yakınsa otur (daha geniş mesafe - rekabet için)
-    if (closestDistance < 80) {
+    if (closestDistance < 100) {
       this.sitOnChair(closestChair);
     }
   }
@@ -328,12 +332,19 @@ export class BotPlayer extends Phaser.Physics.Arcade.Sprite {
     // Durdur
     this.setVelocity(0, 0);
 
-    // Rastgele bir köşe seç (4 köşeden biri)
+    // Physics world bounds'dan daraltılmış alanı al
+    const bounds = (this.scene as Phaser.Scene).physics.world.bounds;
+    const leftEdge = bounds.x + 100;
+    const rightEdge = bounds.x + bounds.width - 100;
+    const topEdge = 100;
+    const bottomEdge = height - 100;
+
+    // Rastgele bir köşe seç (4 köşeden biri) - daraltılmış alana göre
     const corners = [
-      { x: 100, y: 100 },           // Sol üst
-      { x: width - 100, y: 100 },   // Sağ üst
-      { x: 100, y: height - 100 },  // Sol alt
-      { x: width - 100, y: height - 100 } // Sağ alt
+      { x: leftEdge, y: topEdge },           // Sol üst
+      { x: rightEdge, y: topEdge },          // Sağ üst
+      { x: leftEdge, y: bottomEdge },        // Sol alt
+      { x: rightEdge, y: bottomEdge }        // Sağ alt
     ];
 
     const randomCorner = Phaser.Math.RND.pick(corners);

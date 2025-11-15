@@ -23,8 +23,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Animasyonları oluştur
     this.createAnimations(scene);
 
-    // Sprite boyutunu ayarla (2048x2048 çok büyük, scale ile küçült)
-    this.setScale(0.045); // 2048 * 0.045 = ~92 piksel (%50 daha büyük)
+    // Sprite boyutunu ayarla (2048x2048 çok büyük, scale ile küçült) - %10 büyütüldü
+    this.setScale(0.0495); // 0.045 * 1.1 = 0.0495
 
     // Collision body'yi ayarla (sprite'ın gerçek boyutuna göre)
     this.setSize(1024, 1024); // Sprite'ın yarısı kadar collision
@@ -179,7 +179,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
 
     // Eğer yeterince yakınsa otur (daha geniş mesafe - rekabet için)
-    if (closestChair && closestDistance < 80) {
+    if (closestChair && closestDistance < 100) {
       this.sitOnChair(closestChair);
     }
   }
@@ -221,12 +221,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Durdur
     this.setVelocity(0, 0);
 
-    // Rastgele bir köşe seç (4 köşeden biri)
+    // Physics world bounds'dan daraltılmış alanı al
+    const bounds = (this.scene as Phaser.Scene).physics.world.bounds;
+    const leftEdge = bounds.x + 100;
+    const rightEdge = bounds.x + bounds.width - 100;
+    const topEdge = 100;
+    const bottomEdge = height - 100;
+
+    // Rastgele bir köşe seç (4 köşeden biri) - daraltılmış alana göre
     const corners = [
-      { x: 100, y: 100 },           // Sol üst
-      { x: width - 100, y: 100 },   // Sağ üst
-      { x: 100, y: height - 100 },  // Sol alt
-      { x: width - 100, y: height - 100 } // Sağ alt
+      { x: leftEdge, y: topEdge },           // Sol üst
+      { x: rightEdge, y: topEdge },          // Sağ üst
+      { x: leftEdge, y: bottomEdge },        // Sol alt
+      { x: rightEdge, y: bottomEdge }        // Sağ alt
     ];
 
     const randomCorner = Phaser.Math.RND.pick(corners);
